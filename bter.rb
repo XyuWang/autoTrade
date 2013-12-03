@@ -22,6 +22,7 @@ class Bter
     @secret = secret
 
     @balance_address = 'https://bter.com/api/1/private/getfunds'
+    @place_order_address = 'https://bter.com/api/1/private/placeorder'
   end
 
   def btc_balance
@@ -56,13 +57,23 @@ class Bter
     puts e and Log.error e
   end
 
+  def buy price, amount
+    res = post @place_order_address, URI.encode_www_form(pair: "btc_cny", type: "BUY", rate: price, amount: amount)
+    puts res.string
+  end
+
   private
   def get_sign params
     Digest::HMAC.hexdigest(params, @secret, Digest::SHA512)
   end
 
+  def post url, data
+    puts data
+    open url, 'KEY' => @key, :method => :post, 'SIGN' => get_sign(data) { data}
+  end
+
   def balance
-    site = open @balance_address, 'KEY' => @key, :method => :post, 'SIGN' => get_sign('')
+    site = post @balance_address, ''
 
     if !site || site.status[0] != '200'
       raise '连接Bter网站失败'
@@ -81,9 +92,8 @@ class Bter
   end
 end
 
-=begin test
 b = Bter.new '86EB2B7B-848A-423E-8E63-5FAC295193AB', '08b78689ef43f6f23deb6d2125d841e7c3cb799652137cd45501c095c2d2bbb1'
 puts b.money_balance
 puts b.btc_balance
+debugger
 puts Bter.btc_price
-=end

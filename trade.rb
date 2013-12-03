@@ -12,7 +12,6 @@ def trade
     config.secret = 'af46fbd8-683c-4fec-9194-c1b7b246fb85'
   end
 
-
   @trade_spread = 50
 
   check_balance ChinaShop, bter
