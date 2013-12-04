@@ -26,18 +26,6 @@ class Bter
     @place_order_address = 'https://bter.com/api/1/private/placeorder'
   end
 
-  def btc_balance
-    b = balance['available_funds']
-    btc = b.size != 0 ? b['BTC'] : nil
-    btc ? btc.to_f : 0.0
-  end
-
-  def money_balance
-    b = balance['available_funds']
-    money = (b.size != 0) ? b['CNY'] : nil
-    money ? money.to_f : 0.0
-  end
-
   def self.btc_price
     res = RestClient.get @btc_price_address
 
@@ -79,12 +67,40 @@ class Bter
     res
   end
 
+  def balance
+    print '正在获取Bter余额信息...'
+    result = post @balance_address, ''
+
+    if result['result'] != 'true'
+      raise '无法从Bter获取价格信息  ' + result['message']
+    end
+
+    funds = result['available_funds']
+    if funds.size == 0
+      raise 'Bter:获取余额失败!'
+    end
+
+    puts "成功!"
+
+    return {'BTC' => funds['BTC'].to_f, 'CNY' => funds['CNY'].to_f }
+
+  rescue SystemExit, Interrupt
+    raise
+  rescue Exception => e
+    error = "Bter: 无法获取价格信息#{e} 正在重试..."
+    puts error
+    Log.error error
+    Log.error e
+    retry
+  end
+
   private
   def get_sign params
     Digest::HMAC.hexdigest(params, @secret, Digest::SHA512)
   end
 
   def post url, data
+    # TODO 超时处理
     result = RestClient.post url, data,  'KEY' => @key, 'SIGN' => get_sign(data)
     if result.code != 200
       raise '连接Bter网站失败'
@@ -92,23 +108,11 @@ class Bter
 
     JSON.parse result.to_str
   end
-
-  def balance
-    result = post @balance_address, ''
-
-    if result['result'] != 'true'
-      raise '无法从Bter获取价格信息  ' + result['message']
-    end
-
-    return result
-
-  rescue Exception => e
-    puts e
-    Log.error e
-  end
 end
+
 =begin
 b = Bter.new '86EB2B7B-848A-423E-8E63-5FAC295193AB', '08b78689ef43f6f23deb6d2125d841e7c3cb799652137cd45501c095c2d2bbb1'
+puts b.balance
 puts b.money_balance
 puts b.btc_balance
 puts Bter.btc_price
