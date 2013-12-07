@@ -6,5 +6,5 @@ ChinaShop.configure do |config|
     config.secret = 'd8b408a9-8cad-4bcd-a928-131303c684a7'
 end
 
+debugger
 puts ChinaShop.ticker.low
-puts ChinaShop.account.balance.btc
