@@ -5,8 +5,8 @@
 # b.balance
 #
 # Bter.btc_price => {"avg"=>6582.07, "sell"=>6300, "buy"=>6270}"
-# b.debug = true/false
-# b.retry_limit = 3
+# Bter.debug = true/false
+# Bter.retry_limit = 3
 # b.buy 8000, 0.1
 # b.sell 8000, 0.1
 #
@@ -24,7 +24,7 @@ class Bter
     end
 
     def debug
-      @debug
+      @debug || false
     end
 
     def retry_limit= times
@@ -32,7 +32,7 @@ class Bter
     end
 
     def retry_limit
-      @retry_limit ||= 3 # default: 3
+      @retry_limit || 3 # default: 3
     end
 
     def configure
@@ -127,7 +127,9 @@ class Bter
   end
 
   def post url, data
-    result = RestClient.post url, data,  'KEY' => @key, 'SIGN' => get_sign(data)
+#    result = RestClient.post url, data,  'KEY' => @key, 'SIGN' => get_sign(data), timeout
+    resource = RestClient::Resource.new(url, :open_timeout => 15, timeout: 15)
+    result = resource.post data,  'KEY' => @key, 'SIGN' => get_sign(data)
 
     JSON.parse result.to_str
   end
@@ -144,7 +146,7 @@ class Bter
 
   rescue Exception => e
     puts e if Bter.debug
-    Log.error error
+    Log.error e
 
     if retry_times < Bter.retry_limit
       retry_times += 1
@@ -160,8 +162,10 @@ end
 
 =begin
 b = Bter.new '86EB2B7B-848A-423E-8E63-5FAC295193AB', '08b78689ef43f6f23deb6d2125d841e7c3cb799652137cd45501c095c2d2bbb1'
+Bter.debug = true
 puts b.balance
+
 puts Bter.btc_price
-#debugger
+debugger
 a = 10
 =end
