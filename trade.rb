@@ -4,6 +4,9 @@ require 'chinashop'
 require './log'
 require 'debugger'
 
+class LackMoneyException < RuntimeError
+end
+
 class Trade
   attr_accessor :debug, :price_spread, :retry_limit, :piece,
     :bter_cny_balance, :bter_btc_balance, :bter_buy_price, :bter_sell_price,
@@ -187,8 +190,7 @@ class Trade
           Log.info info
         else
           error =  "余额不足 btcc[cny: #{btcc_cny_balance}, btc: #{ btcc_btc_balance}]  bter[cny: #{bter_cny_balance}, btc: #{bter_btc_balance}]"
-          puts error
-          raise error
+          raise LackMoneyException, error
         end
 
       elsif bter_buy_price > btcc_sell_price + price_spread
@@ -286,8 +288,7 @@ class Trade
           Log.info info
         else
           error =  "余额不足 btcc[cny: #{btcc_cny_balance}, btc: #{ btcc_btc_balance}]  bter[cny: #{bter_cny_balance}, btc: #{bter_btc_balance}]"
-          puts error
-          raise error
+          raise LackMoneyException, error
         end
 
       else
@@ -303,6 +304,16 @@ class Trade
     Log.error error
     sleep 60
     retry
+  rescue LackMoneyException => e
+    puts e
+    Log.error error
+    puts '等待10分钟...'
+    for i in 1..10
+      sleep 60
+      print '.'
+    end
+    print '\n'
+
   rescue Exception => e
     error = "发生错误:  #{e}"
     puts error

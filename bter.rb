@@ -52,7 +52,8 @@ class Bter
     btc_price_address = 'https://bter.com/api/1/ticker/btc_cny'
 
     retry_times ||= 0
-    res = RestClient.get btc_price_address
+    resource = RestClient::Resource.new(btc_price_address, :open_timeout => 15, timeout: 15)
+    res = resource.get
 
     result = JSON.parse res.to_str
 
