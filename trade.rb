@@ -27,14 +27,15 @@ class Trade
   def set_prices
     retry_times ||= 0
 
-    print '正在获取Bter价格...' if debug
+    print '正在获取价格信息...' if debug
+#    print '正在获取Bter价格...' if debug
     price = Bter.btc_price
     self.bter_buy_price = price["buy"]
     self.bter_sell_price = price["sell"]
 
-    puts "成功!" if debug
+#    puts "成功!" if debug
 
-    print '正在获取Btcc价格...' if debug
+#    print '正在获取Btcc价格...' if debug
     ticker = ChinaShop.ticker
     self.btcc_buy_price = ticker.buy.to_f
     self.btcc_sell_price = ticker.sell.to_f
@@ -60,13 +61,14 @@ class Trade
   def set_balances
     retry_times ||= 0
 
-    print '正在获取btcc余额信息...' if debug
+    print '正在获取余额信息...' if debug
+#    print '正在获取btcc余额信息...' if debug
 
     balance = @btcc.account.balance
     self.btcc_cny_balance = balance.cny.to_f
     self.btcc_btc_balance = balance.btc.to_f
 
-    print '正在获取bter余额信息...' if debug
+#    print '正在获取bter余额信息...' if debug
 
     balance = @bter.balance
     self.bter_cny_balance = balance['CNY']
@@ -307,12 +309,13 @@ class Trade
   rescue LackMoneyException => e
     puts e
     Log.error error
-    puts '等待10分钟...'
-    for i in 1..10
+    puts '等待3分钟...'
+    for i in 1..3
       sleep 60
       print '.'
     end
     print '\n'
+    retry
 
   rescue Exception => e
     error = "发生错误:  #{e}"
@@ -390,8 +393,9 @@ ChinaShop.configure do |config|
   config.secret = 'af46fbd8-683c-4fec-9194-c1b7b246fb85'
 end
 
+
 t = Trade.new bter, ChinaShop
 t.price_spread = 100
-t.debug = true
-
+#t.debug = true
+puts '开始运行...'
 t.start

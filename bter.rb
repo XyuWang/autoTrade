@@ -49,33 +49,33 @@ class Bter
   end
 
   def self.btc_price
-    btc_price_address = 'https://bter.com/api/1/ticker/btc_cny'
+    btc_orders_address = 'https://bter.com/api/1/depth/btc_cny'
 
     retry_times ||= 0
-    resource = RestClient::Resource.new(btc_price_address, :open_timeout => 15, timeout: 15)
+    resource = RestClient::Resource.new(btc_orders_address, :open_timeout => 15, timeout: 15)
     res = resource.get
 
     result = JSON.parse res.to_str
 
-    if result['result'] != 'true' || !result['avg'] || !result['sell'] || !result['buy'] || result['avg'] <= 0 || result['sell'] <= 0 || result['buy'] <= 0
+    if result['result'] != 'true' || !result['bids'] || !result['asks'] || result['bids'].size == 0 || result['asks'].size == 0
       raise '无法从Bter获取价格信息'
     end
 
-    avg_price = result['avg']
-    sell_price = result['sell']
-    buy_price = result['buy']
+    sell_price = result['asks'].last[0]
+    buy_price = result['bids'][0][0]
 
     if sell_price < buy_price
       raise "价格异常..卖价:#{sell_price} 买价#{buy_price}"
     end
 
-    return {"avg" => avg_price, "sell"=> sell_price, 'buy' => buy_price}
+    return {"sell"=> sell_price, 'buy' => buy_price}
   rescue Exception => e
     print "Bter: 无法获取价格信息 #{e}" if Bter.debug
 
-    if retry_times < Bter.retry_limit
+    if retry_times < Bter.retry_limit * 3
       retry_times += 1
       puts "正在重试..." if Bter.debug
+      sleep 1
       retry
     else
       raise e
@@ -167,6 +167,6 @@ Bter.debug = true
 puts b.balance
 
 puts Bter.btc_price
-debugger
+#debugger
 a = 10
 =end
