@@ -71,7 +71,6 @@ class Bter
   rescue Exception => e
     print "Bter: 无法获取价格信息 #{e}" if Bter.debug
 
-    retry_times += 1
     puts "正在重试..." if Bter.debug
     sleep 1
     retry
@@ -106,7 +105,6 @@ class Bter
   rescue Exception => e
     puts "Bter: 无法获取价格信息#{e} 正在重试..." if Bter.debug
 
-    retry_times += 1
     puts "正在重试..." if Bter.debug
     retry
   end
