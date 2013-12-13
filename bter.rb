@@ -1,5 +1,5 @@
 #encoding: utf-8
-# 
+#
 # Usage:
 # b = Bter.new key, secret
 # b.balance
@@ -51,7 +51,6 @@ class Bter
   def self.btc_price
     btc_orders_address = 'https://bter.com/api/1/depth/btc_cny'
 
-    retry_times ||= 0
     resource = RestClient::Resource.new(btc_orders_address, :open_timeout => 15, timeout: 15)
     res = resource.get
 
@@ -72,14 +71,10 @@ class Bter
   rescue Exception => e
     print "Bter: 无法获取价格信息 #{e}" if Bter.debug
 
-    if retry_times < Bter.retry_limit * 3
-      retry_times += 1
-      puts "正在重试..." if Bter.debug
-      sleep 1
-      retry
-    else
-      raise e
-    end
+    retry_times += 1
+    puts "正在重试..." if Bter.debug
+    sleep 1
+    retry
   end
 
   def buy price, amount
@@ -91,8 +86,6 @@ class Bter
   end
 
   def balance
-    retry_times ||= 0
-
     print '正在获取Bter余额信息...' if Bter.debug
     result = post @balance_address, ''
 
@@ -113,13 +106,9 @@ class Bter
   rescue Exception => e
     puts "Bter: 无法获取价格信息#{e} 正在重试..." if Bter.debug
 
-    if retry_times < Bter.retry_limit
-      retry_times += 1
-      puts "正在重试..." if Bter.debug
-      retry
-    else
-      raise e
-    end
+    retry_times += 1
+    puts "正在重试..." if Bter.debug
+    retry
   end
 
   private

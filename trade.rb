@@ -8,7 +8,7 @@ class LackMoneyException < RuntimeError
 end
 
 class Trade
-  attr_accessor :debug, :price_spread, :retry_limit, :piece,
+  attr_accessor :debug, :price_spread, :retry_limit, :piece, :sleep_time,
     :bter_cny_balance, :bter_btc_balance, :bter_buy_price, :bter_sell_price,
     :btcc_cny_balance, :btcc_btc_balance, :btcc_buy_price, :btcc_sell_price
 
@@ -22,6 +22,7 @@ class Trade
     self.retry_limit = 3
     self.debug = false
     self.piece = 0.01
+    self.sleep_time = 3
   end
 
   def set_prices
@@ -297,6 +298,8 @@ class Trade
         puts '..........没有发现价格差距 正在等待重试..........' if debug
       end
 
+      sleep sleep_time
+
     end
   rescue SystemExit, Interrupt
     raise
@@ -396,6 +399,6 @@ end
 
 t = Trade.new bter, ChinaShop
 t.price_spread = 100
-#t.debug = true
+t.debug = true
 puts '开始运行...'
 t.start
